@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La taxonomie SOLO pour structurer l'évaluation</title>
+<style>
+  :root{
+    --l0:#7d838c; --l1:#3f74ad; --l2:#2f8f84; --l3:#c27d1e; --l4:#7c4598;
+    --l0b:#eceef0; --l1b:#e3ecf6; --l2b:#e1f1ef; --l3b:#f8eddc; --l4b:#efe5f4;
+    --ink:#1f2328; --muted:#5b636d; --line:#d9dde2; --bg:#fbfbfa; --card:#ffffff;
+    --accent:#2b3a4a;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;font-size:16.5px}
+  nav{position:fixed;top:0;left:0;bottom:0;width:270px;background:var(--accent);color:#fff;padding:24px 18px;overflow-y:auto}
+  nav h2{font-size:15px;margin:0 0 16px;font-weight:600;letter-spacing:.02em;color:#cfd8e2}
+  nav ol{margin:0;padding-left:20px}
+  nav li{margin:0 0 10px;font-size:14px}
+  nav a{color:#fff;text-decoration:none}
+  nav a:hover{text-decoration:underline}
+  nav .legend{margin-top:26px;border-top:1px solid #4a5a6b;padding-top:14px;font-size:13px}
+  nav .legend div{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  nav .legend span.sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+  main{margin-left:270px;padding:40px 48px 80px;max-width:1050px}
+  header h1{font-size:30px;margin:0 0 6px;line-height:1.25}
+  header p{color:var(--muted);margin:0 0 30px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:30px 34px;margin-bottom:30px}
+  section h2{font-size:23px;margin:0 0 18px;line-height:1.3}
+  section h3{font-size:18px;margin:28px 0 10px}
+  section h4{font-size:16px;margin:20px 0 8px}
+  .num{color:var(--muted);font-weight:500;margin-right:6px}
+  .note{background:#f3f5f7;border-left:4px solid var(--accent);padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0}
+  .warn{background:#fff7e8;border-left:4px solid var(--l3);padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0}
+  .muted{color:var(--muted)}
+  .small{font-size:14px}
+
+  /* Couleurs de niveaux */
+  .tag{display:inline-block;padding:1px 9px;border-radius:12px;font-size:13px;font-weight:600;color:#fff;white-space:nowrap}
+  .t0{background:var(--l0)} .t1{background:var(--l1)} .t2{background:var(--l2)} .t3{background:var(--l3)} .t4{background:var(--l4)}
+  .b0{background:var(--l0b);border-left:5px solid var(--l0)} .b1{background:var(--l1b);border-left:5px solid var(--l1)}
+  .b2{background:var(--l2b);border-left:5px solid var(--l2)} .b3{background:var(--l3b);border-left:5px solid var(--l3)}
+  .b4{background:var(--l4b);border-left:5px solid var(--l4)}
+
+  /* Section 1 : escalier */
+  .stairs{display:flex;align-items:flex-end;gap:10px;margin:20px 0 10px}
+  .step{flex:1;border-radius:8px 8px 0 0;color:#fff;padding:12px 10px;display:flex;flex-direction:column;justify-content:flex-start}
+  .step strong{font-size:14.5px}
+  .step svg{margin-top:auto;align-self:center}
+  .phase{display:flex;gap:10px;margin-bottom:22px}
+  .phase div{text-align:center;font-size:13px;color:var(--muted);border-top:2px solid var(--line);padding-top:4px}
+  .levels-desc .lv{padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:10px}
+  .levels-desc .lv p{margin:4px 0 0}
+
+  /* Section 2 */
+  .map-wrap{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fcfcfd}
+  .ladders{display:flex;gap:18px;align-items:flex-end;height:420px;border-bottom:2px solid var(--line);padding:0 6px;position:relative}
+  .ladder{flex:1;position:relative;height:100%;cursor:pointer;border-radius:8px;transition:background .15s}
+  .ladder:hover,.ladder.active{background:#f1f3f5}
+  .ladder .rung{position:absolute;left:8%;right:8%;border-radius:4px;font-size:12.5px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 4px;line-height:1.15;color:#fff}
+  .ladder-names{display:flex;gap:18px;padding:8px 6px 0}
+  .ladder-names div{flex:1;text-align:center;font-size:13.5px;font-weight:600}
+  .ladder-names div span{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+  .r-solo{background:var(--accent)} .r-bloom{background:#5a6f86} .r-krath{background:#8a6a7d} .r-simp{background:#6b7d5a}
+  #ladderInfo{margin-top:16px;padding:16px 18px;border:1px solid var(--line);border-radius:8px;background:#fff;min-height:90px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .box{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:#fff}
+  .box h4{margin-top:0}
+
+  /* Section 4 : échelles */
+  .scale{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:10px 0}
+  .scale .row{display:grid;grid-template-columns:120px 1fr;border-top:1px solid var(--line)}
+  .scale .row:first-child{border-top:none}
+  .scale .row div{padding:9px 12px;font-size:15px}
+  .scale .row div:first-child{font-weight:600;background:#f5f6f7}
+  .scale-title{font-weight:600;font-size:14px;padding:8px 12px;color:#fff}
+  .before .scale-title{background:#8a9099} .after .scale-title{background:var(--accent)}
+  .verdict{margin-top:10px;padding:12px 16px;background:#f3f5f7;border-radius:6px}
+
+  /* Section 5 : verbes */
+  .verbs .vrow{display:grid;grid-template-columns:170px 1fr 1fr 1fr;gap:0;border-top:1px solid var(--line)}
+  .verbs .vrow>div{padding:10px 12px;font-size:15px}
+  .verbs .vhead>div{font-weight:600;font-size:14px;background:#f5f6f7}
+  .verbs .lvcell{font-weight:600;color:#fff}
+
+  /* Section 6 : disciplines */
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+  .tabs button{border:1px solid var(--line);background:#fff;border-radius:18px;padding:6px 14px;font-size:14px;cursor:pointer;color:var(--ink)}
+  .tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .disc{display:none}
+  .disc.on{display:block}
+  .disc h3{margin-top:0;font-size:21px}
+  .task{font-size:16.5px;margin:0 0 14px}
+  .lvl{padding:9px 14px;border-radius:0 6px 6px 0;margin-bottom:7px}
+  .crit{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+  .crit div{padding:12px 14px;border-radius:6px;font-size:15px}
+  .crit .cm{background:var(--l2b);border:1px solid var(--l2)}
+  .crit .cr{background:var(--l3b);border:1px solid var(--l3)}
+  .crit b{display:block;font-size:13px;margin-bottom:4px}
+  .other{border:1px dashed #b7bec6;border-radius:8px;padding:12px 16px;margin-top:12px}
+  .other h4{margin:0 0 6px}
+  .other ul{margin:6px 0 0;padding-left:20px}
+
+  /* Section 7 : exercice */
+  .q{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px;background:#fff}
+  .q .resp{font-style:italic;margin:6px 0 10px}
+  .q .btns{display:flex;flex-wrap:wrap;gap:6px}
+  .q .btns button{border:none;border-radius:16px;padding:5px 12px;font-size:13.5px;color:#fff;cursor:pointer;opacity:.9}
+  .q .btns button:hover{opacity:1}
+  .fb{margin-top:10px;padding:10px 12px;border-radius:6px;display:none;font-size:15px}
+  .fb.ok{display:block;background:#e5f3e8;border:1px solid #6fae7d}
+  .fb.no{display:block;background:#fbe9e7;border:1px solid #d38a80}
+  textarea{width:100%;min-height:80px;font:inherit;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:6px}
+  .reveal{margin-top:8px;border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:14px}
+  .answer{display:none;margin-top:10px;padding:12px 14px;background:var(--l3b);border-left:5px solid var(--l3);border-radius:0 6px 6px 0}
+  .answer.show{display:block}
+  .check label{display:block;margin:8px 0;font-size:15.5px}
+  .check select{margin-left:6px;font:inherit;font-size:14px}
+  #diag{margin-top:12px;padding:12px 14px;border-radius:6px;display:none}
+  .gabarit{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14.5px;background:#f5f6f7;padding:12px 14px;border-radius:6px}
+  .refs p{margin:0 0 10px;padding-left:28px;text-indent:-28px}
+
+  .case{border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin:14px 0;background:#fff}
+  .case h3{margin-top:0}
+  .case .lbl{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 4px}
+  .prod{background:#fdfbf4;border:1px solid #e6dcc0;border-radius:6px;padding:12px 16px;font-family:Georgia,"Times New Roman",serif;font-size:16px}
+  .result{background:#e5f3e8;border:1px solid #6fae7d;border-radius:6px;padding:10px 14px;margin-top:12px}
+  .blind{background:#fbe9e7;border:1px solid #d38a80;border-radius:6px;padding:10px 14px;margin-top:8px}
+  @media (max-width:900px){
+    nav{position:static;width:auto}
+    main{margin-left:0;padding:24px 16px}
+    .grid2,.crit{grid-template-columns:1fr}
+    .verbs .vrow{grid-template-columns:1fr}
+    .ladders{height:360px;gap:8px}
+  }
+  @media print{
+    nav,.tabs,.reveal,.q .btns,#ladderHint{display:none !important}
+    main{margin:0;padding:0;max-width:none}
+    body{background:#fff;font-size:12pt}
+    section{border:none;padding:0;margin-bottom:18pt;page-break-inside:auto}
+    .disc{display:block !important;page-break-inside:avoid;margin-bottom:18pt}
+    .answer{display:block !important}
+    .step,.tag,.lvcell,.scale-title,.rung{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <h2>Sommaire</h2>
+  <ol>
+    <li><a href="#s0">Deux contre-exemples : des évaluations fondées sur la quantité</a></li>
+    <li><a href="#s1">Présentation de la taxonomie SOLO et de ses cinq niveaux</a></li>
+    <li><a href="#s2">Comparaison de SOLO avec les taxonomies des domaines cognitif, affectif et psychomoteur</a></li>
+    <li><a href="#s3">Adaptation de SOLO aux domaines affectif et psychomoteur</a></li>
+    <li><a href="#s4">Limites des grilles d'évaluation de niveau multistructurel</a></li>
+    <li><a href="#s5">Verbes associés à chaque niveau de SOLO</a></li>
+    <li><a href="#s6">Exemples d'application dans dix disciplines</a></li>
+    <li><a href="#s7">Exercice de reformulation de critères d'évaluation</a></li>
+    <li><a href="#refs">Références</a></li>
+  </ol>
+  <div class="legend">
+    <div><span class="sw" style="background:var(--l0)"></span>Préstructurel</div>
+    <div><span class="sw" style="background:var(--l1)"></span>Unistructurel</div>
+    <div><span class="sw" style="background:var(--l2)"></span>Multistructurel</div>
+    <div><span class="sw" style="background:var(--l3)"></span>Relationnel</div>
+    <div><span class="sw" style="background:var(--l4)"></span>Abstrait étendu</div>
+  </div>
+</nav>
+
+<main>
+<header>
+  <h1>La taxonomie SOLO pour structurer l'évaluation des apprentissages</h1>
+  <p>Document d'initiation destiné aux personnes enseignantes du collégial. Objectif : concevoir des critères et des échelles d'évaluation qui dépassent le niveau multistructurel.</p>
+</header>
+
+<!-- ============ SECTION 1 : CONTRE-EXEMPLES ============ -->
+<section id="s0">
+  <h2><span class="num">1.</span>Deux contre-exemples : des évaluations fondées sur la quantité</h2>
+  <p>Avant de présenter SOLO, voici deux situations d'évaluation. Dans chacune, la grille a été appliquée correctement.</p>
+
+  <div class="case">
+    <h3>Cas 1 : une présentation orale (situation vécue au collégial)</h3>
+    <div class="lbl">Critères d'évaluation</div>
+    <ul style="margin:0">
+      <li>Se présenter.</li>
+      <li>Préparer un support PowerPoint.</li>
+      <li>Rester en avant au moins 10 minutes.</li>
+    </ul>
+    <div class="lbl">Ce qui s'est passé</div>
+    <div class="prod">Jordan arrive et s'installe devant la classe. Il dit : «&nbsp;Bonjour, je m'appelle Jordan Tatata.&nbsp;» Il ouvre un PowerPoint sur lequel est écrit : «&nbsp;Bonjour, je m'appelle Jordan Tatata.&nbsp;» Il reste dix minutes en avant, les bras croisés.</div>
+    <div class="result"><strong>Résultat selon la grille :</strong> les trois critères sont satisfaits. Note maximale.</div>
+    <div class="blind"><strong>Ce que la grille ne voit pas :</strong> Jordan n'a rien présenté. Il a répondu à la grille, pas à la tâche.</div>
+    <p class="small muted" style="margin-bottom:0">L'enseignant a bien pris la situation : il lui a montré les limites de ses critères.</p>
+  </div>
+
+  <div class="case">
+    <h3>Cas 2 : une analyse littéraire (situation construite)</h3>
+    <div class="lbl">Consigne remise aux étudiants</div>
+    <p style="margin:0">«&nbsp;Analysez comment le poème <em>Chanson d'automne</em> de Paul Verlaine exprime la mélancolie. Appuyez votre analyse sur des procédés stylistiques et des citations.&nbsp;»</p>
+    <div class="lbl">Grille d'évaluation</div>
+    <ul style="margin:0">
+      <li>Excellent : relève quatre procédés stylistiques, appuyés de citations.</li>
+      <li>Bien : relève trois procédés.</li>
+      <li>Passable : relève deux procédés.</li>
+      <li>Insuffisant : relève un procédé ou aucun.</li>
+    </ul>
+    <div class="lbl">Production d'un étudiant</div>
+    <div class="prod">Dans ce poème, il y a une assonance en «&nbsp;on&nbsp;» : «&nbsp;Les sanglots longs des violons&nbsp;». Il y a aussi une personnification, car les violons sanglotent. Il y a une comparaison : «&nbsp;Pareil à la feuille morte&nbsp;». Il y a un champ lexical de la tristesse : «&nbsp;sanglots&nbsp;», «&nbsp;pleure&nbsp;». Le poème parle de l'automne. Il est triste.</div>
+    <div class="result"><strong>Résultat selon la grille :</strong> quatre procédés justes, quatre citations exactes. Note : Excellent.</div>
+    <div class="blind"><strong>Ce que la grille ne voit pas :</strong> l'étudiant ne dit jamais <em>comment</em> ces procédés expriment la mélancolie. Il a répondu à la grille, pas à la consigne.</div>
+  </div>
+
+  <div class="note"><strong>Qu'est-ce que ces grilles évaluent réellement ?</strong> Elles vérifient la présence d'éléments. Elles ne disent rien de la façon dont ces éléments sont reliés pour accomplir la tâche. C'est précisément ce que la taxonomie SOLO permet de décrire.</div>
+</section>
+
+<!-- ============ SECTION 1 ============ -->
+<section id="s1">
+  <h2><span class="num">2.</span>Présentation de la taxonomie SOLO et de ses cinq niveaux</h2>
+  <p>SOLO signifie <em>Structure of the Observed Learning Outcome</em>, soit la structure du résultat d'apprentissage observé. Elle a été proposée par John Biggs et Kevin Collis (1982). Elle ne classe pas les tâches demandées : elle classe la <strong>structure de la réponse produite</strong> par l'étudiant, selon le nombre d'éléments pertinents mobilisés et, surtout, selon la façon dont ces éléments sont reliés.</p>
+
+  <div class="stairs" aria-hidden="true">
+    <div class="step" style="background:var(--l0);height:90px"><strong>Préstructurel</strong>
+      <svg width="60" height="34"><circle cx="12" cy="20" r="5" fill="#fff" opacity=".5"/><circle cx="46" cy="10" r="4" fill="#fff" opacity=".5"/></svg></div>
+    <div class="step" style="background:var(--l1);height:130px"><strong>Unistructurel</strong>
+      <svg width="60" height="34"><circle cx="30" cy="17" r="6" fill="#fff"/></svg></div>
+    <div class="step" style="background:var(--l2);height:170px"><strong>Multistructurel</strong>
+      <svg width="70" height="34"><circle cx="10" cy="17" r="6" fill="#fff"/><circle cx="27" cy="17" r="6" fill="#fff"/><circle cx="44" cy="17" r="6" fill="#fff"/><circle cx="61" cy="17" r="6" fill="#fff"/></svg></div>
+    <div class="step" style="background:var(--l3);height:210px"><strong>Relationnel</strong>
+      <svg width="70" height="44"><g stroke="#fff" stroke-width="2"><line x1="12" y1="10" x2="58" y2="10"/><line x1="12" y1="10" x2="12" y2="36"/><line x1="58" y1="10" x2="58" y2="36"/><line x1="12" y1="36" x2="58" y2="36"/><line x1="12" y1="10" x2="58" y2="36"/><line x1="58" y1="10" x2="12" y2="36"/></g><circle cx="12" cy="10" r="6" fill="#fff"/><circle cx="58" cy="10" r="6" fill="#fff"/><circle cx="12" cy="36" r="6" fill="#fff"/><circle cx="58" cy="36" r="6" fill="#fff"/></svg></div>
+    <div class="step" style="background:var(--l4);height:250px"><strong>Abstrait étendu</strong>
+      <svg width="86" height="44"><g stroke="#fff" stroke-width="2"><line x1="10" y1="10" x2="46" y2="10"/><line x1="10" y1="10" x2="10" y2="36"/><line x1="46" y1="10" x2="46" y2="36"/><line x1="10" y1="36" x2="46" y2="36"/><line x1="10" y1="10" x2="46" y2="36"/><line x1="46" y1="10" x2="10" y2="36"/><line x1="46" y1="23" x2="76" y2="23" stroke-dasharray="3 3"/></g><circle cx="10" cy="10" r="6" fill="#fff"/><circle cx="46" cy="10" r="6" fill="#fff"/><circle cx="10" cy="36" r="6" fill="#fff"/><circle cx="46" cy="36" r="6" fill="#fff"/><circle cx="80" cy="23" r="5" fill="none" stroke="#fff" stroke-width="2"/></svg></div>
+  </div>
+  <div class="phase">
+    <div style="flex:1">Avant l'apprentissage visé</div>
+    <div style="flex:2">Phase quantitative : on ajoute des éléments</div>
+    <div style="flex:2">Phase qualitative : on relie, puis on transfère</div>
+  </div>
+
+  <div class="levels-desc">
+    <div class="lv b0"><span class="tag t0">Préstructurel</span><p>La réponse manque la cible : information non pertinente, reprise de la question, ou incompréhension de la tâche.</p></div>
+    <div class="lv b1"><span class="tag t1">Unistructurel</span><p>La réponse mobilise un seul élément pertinent. Elle est juste, mais limitée.</p></div>
+    <div class="lv b2"><span class="tag t2">Multistructurel</span><p>La réponse mobilise plusieurs éléments pertinents, traités de façon indépendante. L'étudiant sait beaucoup de choses, mais ne les relie pas.</p></div>
+    <div class="lv b3"><span class="tag t3">Relationnel</span><p>Les éléments sont intégrés en un tout cohérent : l'étudiant explique comment ils s'influencent, se renforcent ou s'opposent.</p></div>
+    <div class="lv b4"><span class="tag t4">Abstrait étendu</span><p>Le tout intégré est généralisé, transféré à un contexte nouveau ou reconceptualisé. L'étudiant dépasse ce qui a été enseigné.</p></div>
+  </div>
+
+  <div class="note">Le passage décisif se situe entre le multistructurel et le relationnel. C'est là que la réponse change de nature : elle cesse d'être une accumulation pour devenir une compréhension.</div>
+</section>
+
+<!-- ============ SECTION 2 ============ -->
+<section id="s2">
+  <h2><span class="num">3.</span>Comparaison de SOLO avec les taxonomies des domaines cognitif (Bloom révisée), affectif (Krathwohl) et psychomoteur (Simpson)</h2>
+
+  <h3>3.1 Ce que chaque taxonomie classe</h3>
+  <ul>
+    <li><strong>Bloom révisée</strong> (Anderson et Krathwohl, 2001) : les processus cognitifs visés par une tâche (se souvenir, comprendre, appliquer, analyser, évaluer, créer).</li>
+    <li><strong>Krathwohl, Bloom et Masia</strong> (1964) : le degré d'intériorisation d'une valeur ou d'une attitude (réception, réponse, valorisation, organisation, caractérisation).</li>
+    <li><strong>Simpson</strong> (1972) : le degré de maîtrise et d'autonomie d'une habileté motrice (perception, préparation, réponse guidée, mécanisme, réponse complexe, adaptation, création).</li>
+    <li><strong>SOLO</strong> (Biggs et Collis, 1982) : la complexité structurelle de la réponse produite par l'étudiant.</li>
+  </ul>
+  <div class="note"><strong>Différence principale.</strong> Les trois premières taxonomies décrivent surtout ce que l'enseignant <em>demande</em> ou <em>vise</em>. SOLO décrit ce que l'étudiant <em>produit</em>. C'est pourquoi SOLO est particulièrement utile pour rédiger les descripteurs d'une grille d'évaluation.</div>
+
+  <h3>3.2 Carte des relations entre les taxonomies</h3>
+  <p class="small muted">Chaque flèche précise la nature du lien. Aucun niveau d'une taxonomie n'est mis en correspondance avec un niveau d'une autre.</p>
+  <div class="map-wrap">
+  <svg viewBox="0 0 860 520" width="100%" role="img" aria-label="Carte conceptuelle reliant SOLO aux taxonomies de Bloom, Krathwohl et Simpson">
+    <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b636d"/></marker></defs>
+    <!-- liens -->
+    <line x1="235" y1="120" x2="350" y2="225" stroke="#5b636d" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="625" y1="120" x2="510" y2="225" stroke="#5b636d" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="430" y1="400" x2="430" y2="320" stroke="#5b636d" stroke-width="2" marker-end="url(#arr)"/>
+    <!-- SOLO -->
+    <rect x="320" y="220" width="220" height="96" rx="12" fill="#2b3a4a"/>
+    <text x="430" y="257" text-anchor="middle" fill="#fff" font-size="20" font-weight="700">SOLO</text>
+    <text x="430" y="281" text-anchor="middle" fill="#dfe6ee" font-size="13.5">Classe la structure</text>
+    <text x="430" y="299" text-anchor="middle" fill="#dfe6ee" font-size="13.5">de la réponse produite</text>
+    <!-- Bloom -->
+    <rect x="40" y="30" width="260" height="90" rx="10" fill="#5a6f86"/>
+    <text x="170" y="62" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">Bloom révisée (cognitif)</text>
+    <text x="170" y="85" text-anchor="middle" fill="#eef2f6" font-size="13">Classe les processus cognitifs</text>
+    <text x="170" y="103" text-anchor="middle" fill="#eef2f6" font-size="13">visés par la tâche</text>
+    <!-- Krathwohl -->
+    <rect x="560" y="30" width="260" height="90" rx="10" fill="#8a6a7d"/>
+    <text x="690" y="62" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">Krathwohl (affectif)</text>
+    <text x="690" y="85" text-anchor="middle" fill="#f5eef2" font-size="13">Classe le degré d'intériorisation</text>
+    <text x="690" y="103" text-anchor="middle" fill="#f5eef2" font-size="13">d'une valeur</text>
+    <!-- Simpson -->
+    <rect x="300" y="400" width="260" height="90" rx="10" fill="#6b7d5a"/>
+    <text x="430" y="432" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">Simpson (psychomoteur)</text>
+    <text x="430" y="455" text-anchor="middle" fill="#f0f4ec" font-size="13">Classe la maîtrise et l'autonomie</text>
+    <text x="430" y="473" text-anchor="middle" fill="#f0f4ec" font-size="13">d'une habileté motrice</text>
+    <!-- étiquettes des liens -->
+    <g font-size="12.5" fill="#1f2328">
+      <text x="20" y="165">Bloom décrit l'intention de la tâche.</text>
+      <text x="20" y="183">SOLO vérifie si la réponse atteint</text>
+      <text x="20" y="201">réellement cette intention.</text>
+      <text x="610" y="165">SOLO ne mesure pas l'adhésion à une</text>
+      <text x="610" y="183">valeur. Il peut décrire la structure</text>
+      <text x="610" y="201">du raisonnement sur les valeurs.</text>
+      <text x="580" y="345">Simpson décrit l'autonomie du geste.</text>
+      <text x="580" y="363">SOLO décrit la coordination des</text>
+      <text x="580" y="381">composantes du geste en situation.</text>
+    </g>
+  </svg>
+  </div>
+
+  <h3>3.3 Quatre échelles indépendantes</h3>
+  <p class="small muted" id="ladderHint">Cliquez sur une échelle pour afficher ce qu'elle classe et à quoi elle sert. Les hauteurs ne coïncident pas : c'est volontaire. On ne peut pas tracer de ligne horizontale d'une échelle à l'autre.</p>
+  <div class="ladders" id="ladders"></div>
+  <div class="ladder-names">
+    <div>SOLO<span>Structure de la réponse</span></div>
+    <div>Bloom révisée<span>Domaine cognitif</span></div>
+    <div>Krathwohl<span>Domaine affectif</span></div>
+    <div>Simpson<span>Domaine psychomoteur</span></div>
+  </div>
+  <div id="ladderInfo"><span class="muted">Sélectionnez une échelle.</span></div>
+  <div class="note"><strong>Des taxonomies pour formuler des objectifs, pas pour construire des grilles.</strong> Les taxonomies des domaines cognitif, affectif et psychomoteur sont utiles pour formuler des objectifs pédagogiques. Elles ne sont pas forcément conçues pour construire des grilles d'évaluation. Elles y contribuent toutefois d'une façon : l'évaluation doit être cohérente avec le niveau taxonomique visé par l'objectif. SOLO, lui, sert à décrire les échelons de la grille.</div>
+
+  <h3>3.4 Un cas de divergence entre Bloom et SOLO</h3>
+  <div class="grid2">
+    <div class="box"><h4>Ce que vise la tâche (Bloom)</h4>
+      <p>Consigne : «&nbsp;Analysez les causes de la Révolution tranquille.&nbsp;»</p>
+      <p>Le processus visé est <strong>analyser</strong>, un niveau élevé de la taxonomie.</p></div>
+    <div class="box"><h4>Ce que produit l'étudiant (SOLO)</h4>
+      <p>L'étudiant décrit correctement cinq causes, l'une après l'autre, sans les relier ni les hiérarchiser.</p>
+      <p>La réponse est <span class="tag t2">Multistructurel</span>.</p></div>
+  </div>
+  <div class="note">La consigne visait haut, mais la réponse reste quantitative. Une grille qui vérifie seulement la présence des cinq causes ne permet pas de voir cet écart. Un descripteur formulé avec SOLO le rend visible.</div>
+</section>
+
+<!-- ============ SECTION 3 ============ -->
+<section id="s3">
+  <h2><span class="num">4.</span>Adaptation de SOLO aux domaines affectif et psychomoteur</h2>
+  <div class="warn">SOLO a été conçu pour analyser des réponses dans le domaine cognitif. Ce qui suit est une <strong>adaptation</strong> : elle s'avère utile pour rédiger des descripteurs, mais elle ne fait pas partie du modèle d'origine.</div>
+
+  <h3>4.1 Domaine psychomoteur</h3>
+  <p>On observe la structure de la performance : combien de composantes sont maîtrisées et comment elles sont coordonnées en situation.</p>
+  <div class="levels-desc">
+    <div class="lv b1"><span class="tag t1">Unistructurel</span><p>Exécute un geste isolé correctement.</p></div>
+    <div class="lv b2"><span class="tag t2">Multistructurel</span><p>Enchaîne plusieurs gestes maîtrisés, mais sans les coordonner à la situation.</p></div>
+    <div class="lv b3"><span class="tag t3">Relationnel</span><p>Coordonne les gestes et les ajuste à la situation (par exemple, à la lecture du jeu ou au jeu d'un acteur).</p></div>
+    <div class="lv b4"><span class="tag t4">Abstrait étendu</span><p>Transfère ou recompose ses gestes dans un contexte nouveau.</p></div>
+  </div>
+  <p>L'apport de SOLO par rapport à Simpson : il met l'accent sur les <strong>liens entre les composantes</strong> du geste, et non seulement sur son degré d'automatisation.</p>
+
+  <h3>4.2 La stratégie : une frontière entre le cognitif et le psychomoteur</h3>
+  <div class="grid2" style="align-items:center">
+    <svg viewBox="0 0 440 270" width="100%" role="img" aria-label="Diagramme : la stratégie à l'intersection des domaines cognitif et psychomoteur">
+      <circle cx="160" cy="135" r="125" fill="#5a6f86" fill-opacity=".22" stroke="#5a6f86" stroke-width="2"/>
+      <circle cx="280" cy="135" r="125" fill="#6b7d5a" fill-opacity=".22" stroke="#6b7d5a" stroke-width="2"/>
+      <text x="95" y="105" text-anchor="middle" font-size="15" font-weight="700" fill="#2f3e50">Cognitif</text>
+      <text x="95" y="132" text-anchor="middle" font-size="12.5" fill="#1f2328">Lire</text>
+      <text x="95" y="148" text-anchor="middle" font-size="12.5" fill="#1f2328">la situation</text>
+      <text x="95" y="170" text-anchor="middle" font-size="12.5" fill="#1f2328">Choisir</text>
+      <text x="95" y="186" text-anchor="middle" font-size="12.5" fill="#1f2328">une action</text>
+      <text x="345" y="105" text-anchor="middle" font-size="15" font-weight="700" fill="#3f4d33">Psychomoteur</text>
+      <text x="345" y="132" text-anchor="middle" font-size="12.5" fill="#1f2328">Exécuter</text>
+      <text x="345" y="148" text-anchor="middle" font-size="12.5" fill="#1f2328">le geste</text>
+      <text x="345" y="170" text-anchor="middle" font-size="12.5" fill="#1f2328">L'ajuster</text>
+      <text x="345" y="186" text-anchor="middle" font-size="12.5" fill="#1f2328">en temps réel</text>
+      <text x="220" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2328">Stratégie</text>
+      <text x="220" y="144" text-anchor="middle" font-size="12" fill="#1f2328">La décision</text>
+      <text x="220" y="159" text-anchor="middle" font-size="12" fill="#1f2328">se réalise</text>
+      <text x="220" y="174" text-anchor="middle" font-size="12" fill="#1f2328">dans le geste</text>
+    </svg>
+    <div>
+      <p>La stratégie relève du cognitif (lire, décider), mais elle n'existe qu'à travers l'action motrice. Dans SOLO, c'est elle qui fait passer une performance au niveau relationnel : le geste est ajusté <em>parce que</em> l'étudiant a lu la situation.</p>
+      <p>Elle peut donc être évaluée de deux façons :</p>
+      <ul>
+        <li><strong>Verbalisée</strong> : l'étudiant explique ses choix (SOLO cognitif).</li>
+        <li><strong>Observée en action</strong> : on constate l'ajustement dans le jeu (SOLO adapté au psychomoteur).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>4.3 Domaine affectif</h3>
+  <p>On ne peut pas évaluer l'adhésion d'un étudiant à une valeur : ce serait évaluer la personne plutôt que l'apprentissage. On peut en revanche évaluer la <strong>structure de son raisonnement sur les valeurs</strong>.</p>
+  <div class="levels-desc">
+    <div class="lv b1"><span class="tag t1">Unistructurel</span><p>Justifie sa position par une seule raison.</p></div>
+    <div class="lv b2"><span class="tag t2">Multistructurel</span><p>Évoque plusieurs valeurs, juxtaposées.</p></div>
+    <div class="lv b3"><span class="tag t3">Relationnel</span><p>Articule et hiérarchise ces valeurs, et reconnaît les tensions entre elles.</p></div>
+    <div class="lv b4"><span class="tag t4">Abstrait étendu</span><p>Applique un système de valeurs cohérent à des situations nouvelles.</p></div>
+  </div>
+  <p>On rejoint ici les niveaux «&nbsp;organisation&nbsp;» et «&nbsp;caractérisation&nbsp;» de Krathwohl, mais sous un angle observable et évaluable.</p>
+</section>
+
+<!-- ============ SECTION 4 ============ -->
+<section id="s4">
+  <h2><span class="num">5.</span>Limites des grilles d'évaluation de niveau multistructurel</h2>
+
+  <h3>5.1 Indices qu'une grille est multistructurelle</h3>
+  <ul>
+    <li>Les critères sont comptables : «&nbsp;nomme trois facteurs&nbsp;», «&nbsp;présente quatre arguments&nbsp;».</li>
+    <li>Les échelons varient selon le <strong>nombre</strong> d'éléments présents.</li>
+    <li>D'un échelon à l'autre, les descripteurs ajoutent des éléments plutôt que de la complexité.</li>
+  </ul>
+
+  <h3>5.2 Conséquence</h3>
+  <p>Un étudiant peut obtenir la note maximale sans démontrer qu'il intègre ses apprentissages. Les deux exemples ci-dessous le montrent.</p>
+
+  <h3>5.3 Lien avec l'approche par compétences au collégial</h3>
+  <p>Une compétence est intégratrice : elle suppose la mobilisation <em>combinée</em> de ressources en situation. Son évaluation devrait donc viser au moins le niveau relationnel. Une grille qui plafonne au multistructurel évalue des ressources, pas la compétence.</p>
+
+  <h3>5.4 Exemple en éducation physique</h3>
+  <p class="muted small">Critère : justification du programme personnel d'activité physique.</p>
+  <div class="grid2">
+    <div class="scale before"><div class="scale-title">Avant : échelle construite sur la quantité</div>
+      <div class="row"><div>Excellent</div><div>Présente les quatre paramètres (fréquence, intensité, durée, type) et son objectif.</div></div>
+      <div class="row"><div>Bien</div><div>Présente trois paramètres.</div></div>
+      <div class="row"><div>Passable</div><div>Présente deux paramètres.</div></div>
+      <div class="row"><div>Insuffisant</div><div>Présente un paramètre ou aucun.</div></div>
+    </div>
+    <div class="scale after"><div class="scale-title">Après : échelle construite sur les liens</div>
+      <div class="row"><div>Excellent</div><div><span class="tag t4">AE</span> Explique les liens entre les paramètres en fonction de son objectif et anticipe les ajustements si son contexte change.</div></div>
+      <div class="row"><div>Bien</div><div><span class="tag t3">R</span> Explique comment les paramètres s'ajustent les uns aux autres en fonction de son objectif et de ses contraintes.</div></div>
+      <div class="row"><div>Passable</div><div><span class="tag t2">M</span> Présente les paramètres de son programme, sans les relier à son objectif.</div></div>
+      <div class="row"><div>Insuffisant</div><div><span class="tag t1">U</span> Justifie son programme par un seul paramètre ou par des raisons sans lien avec lui.</div></div>
+    </div>
+  </div>
+  <div class="verdict">Un étudiant qui énumère les quatre paramètres sans les relier à son objectif obtient «&nbsp;Excellent&nbsp;» dans la première échelle et «&nbsp;Passable&nbsp;» dans la seconde. Dans la seconde, la présence des quatre paramètres devient <strong>le seuil</strong>, et non plus le sommet.</div>
+
+  <h3>5.5 Exemple en littérature</h3>
+  <p class="muted small">Critère : analyse de la construction d'un thème dans un texte.</p>
+  <div class="grid2">
+    <div class="scale before"><div class="scale-title">Avant : échelle construite sur la quantité</div>
+      <div class="row"><div>Excellent</div><div>Relève quatre procédés stylistiques, appuyés de citations.</div></div>
+      <div class="row"><div>Bien</div><div>Relève trois procédés.</div></div>
+      <div class="row"><div>Passable</div><div>Relève deux procédés.</div></div>
+      <div class="row"><div>Insuffisant</div><div>Relève un procédé ou aucun.</div></div>
+    </div>
+    <div class="scale after"><div class="scale-title">Après : échelle construite sur les liens</div>
+      <div class="row"><div>Excellent</div><div><span class="tag t4">AE</span> Explique comment les procédés construisent le thème et situe cette interprétation par rapport à l'esthétique du courant ou à une autre œuvre.</div></div>
+      <div class="row"><div>Bien</div><div><span class="tag t3">R</span> Explique comment les procédés relevés contribuent ensemble à la construction du thème.</div></div>
+      <div class="row"><div>Passable</div><div><span class="tag t2">M</span> Relève et nomme plusieurs procédés pertinents, sans les relier au thème.</div></div>
+      <div class="row"><div>Insuffisant</div><div><span class="tag t1">U</span> Relève un seul procédé ou paraphrase le texte.</div></div>
+    </div>
+  </div>
+  <div class="verdict">Un étudiant qui relève quatre procédés sans jamais dire ce qu'ils font au texte obtient «&nbsp;Excellent&nbsp;» dans la première échelle et «&nbsp;Passable&nbsp;» dans la seconde.</div>
+</section>
+
+<!-- ============ SECTION 5 ============ -->
+<section id="s5">
+  <h2><span class="num">6.</span>Verbes associés à chaque niveau de SOLO</h2>
+  <p>Les verbes des domaines psychomoteur et affectif relèvent de l'adaptation présentée à la section 4.</p>
+  <div class="verbs" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+    <div class="vrow vhead" style="border-top:none"><div>Niveau</div><div>Cognitif</div><div>Psychomoteur</div><div>Affectif (raisonnement sur les valeurs)</div></div>
+    <div class="vrow"><div class="lvcell" style="background:var(--l0)">Préstructurel</div><div class="muted" style="grid-column:span 3">Aucun verbe : la réponse manque la cible.</div></div>
+    <div class="vrow"><div class="lvcell" style="background:var(--l1)">Unistructurel</div><div>identifier, nommer, définir, reconnaître</div><div>exécuter un geste isolé, reproduire</div><div>énoncer une raison, exprimer une préférence</div></div>
+    <div class="vrow"><div class="lvcell" style="background:var(--l2)">Multistructurel</div><div>énumérer, décrire, classer, combiner</div><div>enchaîner, exécuter une séquence</div><div>évoquer plusieurs raisons, lister des valeurs</div></div>
+    <div class="vrow"><div class="lvcell" style="background:var(--l3)">Relationnel</div><div>expliquer, comparer, mettre en relation, justifier, appliquer</div><div>coordonner, ajuster, enchaîner en fonction de</div><div>hiérarchiser, articuler, concilier</div></div>
+    <div class="vrow"><div class="lvcell" style="background:var(--l4)">Abstrait étendu</div><div>généraliser, formuler des hypothèses, transférer, théoriser, créer</div><div>transférer, recomposer, improviser, créer</div><div>transposer ses valeurs à des situations nouvelles, réviser sa position de façon cohérente</div></div>
+  </div>
+  <div class="warn"><strong>Mise en garde.</strong> Le verbe de la consigne ne garantit pas le niveau de la réponse. Une consigne «&nbsp;expliquez&nbsp;» peut produire une réponse qui énumère seulement des éléments. C'est le <strong>descripteur de la grille</strong> qui doit préciser le niveau attendu.</div>
+</section>
+
+<!-- ============ SECTION 6 ============ -->
+<section id="s6">
+  <h2><span class="num">7.</span>Exemples d'application dans dix disciplines</h2>
+  <p>Chaque exemple présente une tâche, les réponses possibles à chaque niveau de SOLO, puis un critère de grille formulé de deux façons.</p>
+  <div class="tabs" id="tabs"></div>
+
+  <!-- EPS -->
+  <div class="disc" data-name="Éducation physique">
+    <h3>Éducation physique</h3>
+    <p class="task"><strong>Tâche :</strong> Justifier les choix de son programme personnel d'activité physique.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Décrit une activité qu'il aime, sans lien avec son programme.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Justifie son programme par un seul paramètre (par exemple la fréquence).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Nomme la fréquence, l'intensité, la durée et le type d'activité, sans les relier entre eux.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Explique comment ces paramètres s'ajustent les uns aux autres en fonction de son objectif et de ses contraintes.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Anticipe comment son programme devrait évoluer si son objectif ou son contexte de vie change.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant présente les quatre paramètres de son programme.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant explique comment les paramètres de son programme s'influencent mutuellement en fonction de son objectif.&nbsp;»</div></div>
+    <div class="other"><h4>Stratégie : frontière entre le cognitif et le psychomoteur</h4>
+      <p class="small">Situation : jeu collectif en supériorité numérique (deux attaquants contre un défenseur).</p>
+      <ul>
+        <li><strong>Verbalisée, multistructurel :</strong> nomme les options possibles (passer, dribbler, tirer) sans dire quand choisir l'une ou l'autre.</li>
+        <li><strong>Verbalisée, relationnel :</strong> explique comment la position du défenseur et celle de son partenaire déterminent le choix de passer ou de pénétrer.</li>
+        <li><strong>Observée, multistructurel :</strong> exécute correctement passes et dribbles, mais sans rapport avec la position du défenseur.</li>
+        <li><strong>Observée, relationnel :</strong> choisit et ajuste son action en fonction du déplacement du défenseur.</li>
+      </ul></div>
+    <div class="other"><h4>Domaine psychomoteur (Simpson)</h4><p class="small">Passage de la réponse guidée (exécuter un geste technique selon les consignes) à l'adaptation (modifier ce geste selon les exigences de la situation).</p></div>
+    <div class="other"><h4>Domaine affectif : la prise en charge de sa pratique</h4>
+      <p class="small">On évalue la structure du raisonnement de l'étudiant sur sa pratique, non son engagement lui-même.</p>
+      <ul>
+        <li><strong>Unistructurel :</strong> une seule raison de pratiquer («&nbsp;pour être en forme&nbsp;»).</li>
+        <li><strong>Multistructurel :</strong> plusieurs raisons juxtaposées.</li>
+        <li><strong>Relationnel :</strong> relie ses motivations, ses obstacles et ses choix concrets.</li>
+        <li><strong>Abstrait étendu :</strong> anticipe comment maintenir sa pratique dans d'autres contextes de vie.</li>
+      </ul></div>
+  </div>
+
+  <!-- Littérature -->
+  <div class="disc" data-name="Littérature">
+    <h3>Littérature</h3>
+    <p class="task"><strong>Tâche :</strong> Expliquer comment un poème construit le thème de la mélancolie.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Exprime son impression personnelle ou paraphrase le poème, sans lien avec le thème.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Relève une figure de style liée au thème (par exemple une métaphore).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Relève et nomme plusieurs procédés (champ lexical, rythme, figures, sonorités), chacun séparément.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Explique comment ces procédés convergent : par exemple, le rythme ralenti renforce l'effet du champ lexical de l'abattement.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Situe cette construction dans l'esthétique d'un courant (romantisme, symbolisme) et la compare à celle d'un autre texte.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant relève au moins trois procédés stylistiques.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant explique comment les procédés relevés contribuent ensemble à construire le thème.&nbsp;»</div></div>
+  </div>
+
+  <!-- Philosophie -->
+  <div class="disc" data-name="Philosophie">
+    <h3>Philosophie</h3>
+    <p class="task"><strong>Tâche :</strong> Prendre position sur la question «&nbsp;Peut-on désobéir à une loi injuste ?&nbsp;»</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Donne une opinion sans argument, ou traite d'une autre question.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Défend sa position à l'aide d'un seul argument (par exemple, la primauté de la conscience).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Expose l'une après l'autre les positions de plusieurs auteurs (Socrate dans le <em>Criton</em>, Thoreau, Rawls), sans les confronter.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Confronte les positions, répond à l'objection la plus forte et fonde sa propre thèse sur cette confrontation.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Dégage un critère général de légitimité de la désobéissance et l'applique à un cas contemporain non étudié en classe.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant présente trois positions philosophiques.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant confronte les positions présentées et fonde sa propre thèse sur cette confrontation.&nbsp;»</div></div>
+    <div class="other"><h4>Domaine affectif (Krathwohl)</h4><p class="small">Passage de la réception (accepter d'écouter des positions contraires à la sienne) à l'organisation (articuler et hiérarchiser de façon raisonnée des valeurs en tension, comme le respect de la loi et la justice). On évalue la structure du raisonnement, jamais la position adoptée.</p></div>
+  </div>
+
+  <!-- Aménagement et urbanisme -->
+  <div class="disc" data-name="Aménagement et urbanisme">
+    <h3>Aménagement et urbanisme</h3>
+    <p class="task"><strong>Tâche :</strong> Analyser un projet de réaménagement d'une artère commerciale.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Décrit ce qu'il apprécie dans le quartier, sans analyser le projet.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Analyse un seul aspect du projet (par exemple le stationnement).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Décrit séparément la mobilité, la densité, le verdissement et l'offre commerciale.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Explique comment les choix de mobilité influent sur l'achalandage commercial et la qualité de l'espace public, et repère les tensions entre ces dimensions.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Dégage des principes d'aménagement transférables à d'autres artères, ou anticipe des effets à long terme (par exemple l'embourgeoisement).</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant traite des quatre dimensions du projet : mobilité, densité, verdissement, commerce.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant explique les interactions et les tensions entre les dimensions du projet.&nbsp;»</div></div>
+  </div>
+
+  <!-- Chimie -->
+  <div class="disc" data-name="Chimie">
+    <h3>Chimie</h3>
+    <p class="task"><strong>Tâche :</strong> Expliquer pourquoi l'eau (H<sub>2</sub>O) a un point d'ébullition beaucoup plus élevé que le sulfure d'hydrogène (H<sub>2</sub>S).</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> «&nbsp;Parce que l'eau est un liquide et le sulfure d'hydrogène, un gaz.&nbsp;»</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Mentionne les ponts hydrogène.</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Cite la masse molaire, la polarité, l'électronégativité et les ponts hydrogène, sans les articuler.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Explique que la forte électronégativité de l'oxygène rend les liaisons très polaires, ce qui permet des ponts hydrogène dont l'effet l'emporte sur celui de la masse molaire (H<sub>2</sub>S est plus lourd, mais bout à plus basse température).</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Prédit et justifie l'ordre des points d'ébullition d'une autre série (NH<sub>3</sub>, PH<sub>3</sub>, AsH<sub>3</sub>).</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant mentionne les facteurs qui influencent le point d'ébullition.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant explique comment ces facteurs interagissent pour produire l'écart observé.&nbsp;»</div></div>
+  </div>
+
+  <!-- Biologie -->
+  <div class="disc" data-name="Biologie">
+    <h3>Biologie</h3>
+    <p class="task"><strong>Tâche :</strong> Expliquer l'apparition de la résistance aux antibiotiques chez les bactéries.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> «&nbsp;Les bactéries s'habituent à l'antibiotique.&nbsp;»</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Mentionne que des mutations rendent certaines bactéries résistantes.</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Définit séparément la mutation, la sélection naturelle, la reproduction rapide et le transfert de gènes.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Explique comment la variation génétique préexistante, la pression de sélection exercée par l'antibiotique et la reproduction rapide produisent ensemble l'augmentation de la proportion de bactéries résistantes.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Applique ce modèle à un autre cas (résistance des insectes aux pesticides) ou évalue une stratégie de santé publique à partir de lui.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant définit les concepts de mutation, de sélection et de reproduction.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant explique comment ces mécanismes s'articulent pour produire la résistance.&nbsp;»</div></div>
+  </div>
+
+  <!-- Gestion de projets environnementaux -->
+  <div class="disc" data-name="Gestion de projets environnementaux">
+    <h3>Gestion de projets environnementaux</h3>
+    <p class="task"><strong>Tâche :</strong> Recommander un scénario de gestion des matières résiduelles pour une municipalité.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Recommande un scénario sans justification, ou sur un critère sans rapport avec le mandat.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Justifie la recommandation par un seul critère (par exemple le coût).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Présente séparément les coûts, les émissions de GES, l'acceptabilité sociale et l'échéancier.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Pondère les critères, explique les compromis entre eux et justifie la recommandation en fonction des priorités de la municipalité.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Propose un cadre de décision réutilisable, ou anticipe l'évolution du scénario selon des changements réglementaires.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;Le rapport présente les critères environnementaux, économiques et sociaux.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;Le rapport explique les compromis entre les critères et justifie la recommandation à partir de leur pondération.&nbsp;»</div></div>
+    <div class="other"><h4>Domaine affectif (Krathwohl)</h4><p class="small">Passage de la valorisation (accorder de l'importance à la durabilité) à l'organisation (concilier des valeurs environnementales, économiques et sociales dans une décision justifiée). On évalue la structure de la justification, non les convictions de l'étudiant.</p></div>
+  </div>
+
+  <!-- Science politique -->
+  <div class="disc" data-name="Science politique">
+    <h3>Science politique</h3>
+    <p class="task"><strong>Tâche :</strong> Expliquer pourquoi le taux de participation électorale varie selon les groupes d'âge.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Porte un jugement («&nbsp;les jeunes ne s'intéressent à rien&nbsp;») sans explication.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Avance un seul facteur (par exemple l'intérêt pour la politique).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Énumère plusieurs facteurs : mobilité résidentielle, socialisation politique, sentiment d'efficacité, accès à l'information.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Explique comment ces facteurs se renforcent (la mobilité résidentielle nuit à l'inscription, ce qui retarde la formation de l'habitude de voter) et les relie à un cadre théorique du comportement électoral.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Compare avec un autre système (par exemple un pays où le vote est obligatoire) et évalue des politiques publiques visant à hausser la participation.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant identifie au moins trois facteurs de la participation électorale.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant explique comment les facteurs interagissent et les relie à un cadre théorique.&nbsp;»</div></div>
+  </div>
+
+  <!-- Histoire -->
+  <div class="disc" data-name="Histoire">
+    <h3>Histoire</h3>
+    <p class="task"><strong>Tâche :</strong> Expliquer les causes de la Révolution tranquille.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Raconte un événement de l'époque, sans lien causal avec la question.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Avance une seule cause (par exemple la mort de Maurice Duplessis).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Énumère l'urbanisation, la mort de Duplessis, l'élection de Jean Lesage, la montée du néonationalisme et l'essor d'une classe moyenne scolarisée.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Distingue causes structurelles et causes conjoncturelles, et explique comment les transformations sociales de l'après-guerre ont rendu possible le changement politique de 1960.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Discute la notion même de rupture à la lumière du débat historiographique, ou compare avec un autre processus de modernisation.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;L'étudiant énumère les causes de la Révolution tranquille.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant hiérarchise les causes et explique les liens entre elles.&nbsp;»</div></div>
+  </div>
+
+  <!-- Techniques de cinéma -->
+  <div class="disc" data-name="Techniques de cinéma">
+    <h3>Techniques de cinéma</h3>
+    <p class="task"><strong>Tâche :</strong> Réaliser le découpage technique d'une scène de dialogue tendue et justifier ses choix.</p>
+    <div class="lvl b0"><span class="tag t0">Préstructurel</span> Propose des plans sans logique de découpage, ou des justifications sans rapport avec la scène.</div>
+    <div class="lvl b1"><span class="tag t1">Unistructurel</span> Justifie un seul choix (par exemple un gros plan pour montrer l'émotion).</div>
+    <div class="lvl b2"><span class="tag t2">Multistructurel</span> Décrit séparément le cadrage, les mouvements de caméra, l'éclairage, le son et le montage.</div>
+    <div class="lvl b3"><span class="tag t3">Relationnel</span> Explique comment le cadrage, le rythme du montage et le traitement sonore agissent ensemble pour construire la tension.</div>
+    <div class="lvl b4"><span class="tag t4">Abstrait étendu</span> Adapte ce langage à un autre genre, ou dégage des principes de mise en scène transférables à d'autres situations dramatiques.</div>
+    <div class="crit"><div class="cm"><b>Formulation multistructurelle</b>«&nbsp;Le découpage précise le cadrage, les mouvements, l'éclairage et le son de chaque plan.&nbsp;»</div><div class="cr"><b>Formulation relationnelle</b>«&nbsp;L'étudiant explique comment ses choix techniques se combinent pour produire l'effet dramatique visé.&nbsp;»</div></div>
+    <div class="other"><h4>Domaine psychomoteur (Simpson et SOLO adapté)</h4>
+      <p class="small">Simpson : passage de la réponse guidée (manipuler la caméra selon une procédure) à l'adaptation (ajuster le mouvement de caméra au jeu des acteurs en temps réel).</p>
+      <ul>
+        <li><strong>Multistructurel :</strong> maîtrise séparément la mise au point, le cadrage et le mouvement.</li>
+        <li><strong>Relationnel :</strong> coordonne mise au point et mouvement en suivant le jeu des acteurs.</li>
+      </ul></div>
+    <div class="other"><h4>Domaine affectif : l'appréciation des œuvres</h4>
+      <p class="small">Krathwohl : passage de la réception (accepter de voir des œuvres éloignées de ses goûts) à l'organisation (fonder son appréciation sur des critères esthétiques articulés). On évalue la structure de l'appréciation, non le goût.</p>
+      <ul>
+        <li><strong>Unistructurel :</strong> apprécie l'œuvre selon un seul critère («&nbsp;les images sont belles&nbsp;»).</li>
+        <li><strong>Multistructurel :</strong> énumère plusieurs qualités ou défauts, juxtaposés.</li>
+        <li><strong>Relationnel :</strong> relie ses critères au projet de l'œuvre et à l'effet produit.</li>
+        <li><strong>Abstrait étendu :</strong> situe son appréciation dans un courant ou une tradition, et la confronte à d'autres lectures.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ============ SECTION 7 ============ -->
+<section id="s7">
+  <h2><span class="num">8.</span>Exercice de reformulation de critères d'évaluation</h2>
+  <p class="muted small">Rien n'est enregistré ni transmis. L'exercice sert à l'autoformation.</p>
+
+  <h3>8.1 Classer des réponses d'étudiants</h3>
+  <p>Lisez chaque réponse et choisissez son niveau de SOLO.</p>
+  <div id="quiz"></div>
+
+  <h3>8.2 Reformuler des critères multistructurels</h3>
+  <p>Réécrivez chaque critère pour qu'il vise le niveau relationnel, puis comparez avec la proposition.</p>
+  <div id="reform"></div>
+
+  <h3>8.3 Vérifier un critère tiré de votre propre grille</h3>
+  <p>Écrivez votre critère, puis répondez aux questions.</p>
+  <textarea id="ownCrit" placeholder="Votre critère..."></textarea>
+  <div class="check" id="check">
+    <label>1. Mon critère indique-t-il un nombre d'éléments à fournir ?<select data-multi="oui"><option value="">Choisir</option><option>oui</option><option>non</option></select></label>
+    <label>2. Les échelons de mon échelle varient-ils selon le nombre d'éléments ?<select data-multi="oui"><option value="">Choisir</option><option>oui</option><option>non</option></select></label>
+    <label>3. Mon critère décrit-il des liens entre les éléments (causes, effets, interactions, compromis) ?<select data-multi="non"><option value="">Choisir</option><option>oui</option><option>non</option></select></label>
+    <label>4. Mon critère précise-t-il en fonction de quoi les éléments sont reliés (un objectif, un contexte, un problème) ?<select data-multi="non"><option value="">Choisir</option><option>oui</option><option>non</option></select></label>
+    <label>5. Un étudiant pourrait-il atteindre le sommet de mon échelle sans démontrer qu'il comprend les liens ?<select data-multi="oui"><option value="">Choisir</option><option>oui</option><option>non</option></select></label>
+  </div>
+  <div id="diag"></div>
+  <h4>Gabarit de reformulation relationnelle</h4>
+  <div class="gabarit">L'étudiant explique comment [élément A] et [élément B] [s'influencent / se renforcent / s'opposent] en fonction de [objectif, contexte ou problème].</div>
+</section>
+
+<!-- ============ RÉFÉRENCES ============ -->
+<section id="refs" class="refs">
+  <h2>Références</h2>
+  <p>Anderson, L. W. et Krathwohl, D. R. (dir.). (2001). <em>A taxonomy for learning, teaching, and assessing: A revision of Bloom's taxonomy of educational objectives</em>. Longman.</p>
+  <p>Biggs, J. B. et Collis, K. F. (1982). <em>Evaluating the quality of learning: The SOLO taxonomy (Structure of the Observed Learning Outcome)</em>. Academic Press.</p>
+  <p>Biggs, J. et Tang, C. (2011). <em>Teaching for quality learning at university</em> (4<sup>e</sup> éd.). Open University Press.</p>
+  <p>Krathwohl, D. R., Bloom, B. S. et Masia, B. B. (1964). <em>Taxonomy of educational objectives. Handbook II: Affective domain</em>. David McKay.</p>
+  <p>Simpson, E. J. (1972). <em>The classification of educational objectives in the psychomotor domain</em>. Gryphon House.</p>
+</section>
+</main>
+
+<script>
+/* ---------- Échelles indépendantes (section 3.3) ---------- */
+const ladders = [
+  {name:"SOLO", cls:"r-solo", base:0, top:300,
+   steps:["Préstructurel","Unistructurel","Multistructurel","Relationnel","Abstrait étendu"],
+   info:"<strong>SOLO classe la structure de la réponse produite.</strong> Objet : ce que l'étudiant a effectivement produit. Usage : rédiger les descripteurs des échelons, de façon à distinguer une réponse qui accumule des éléments d'une réponse qui les relie."},
+  {name:"Bloom révisée", cls:"r-bloom", base:40, top:400,
+   steps:["Se souvenir","Comprendre","Appliquer","Analyser","Évaluer","Créer"],
+   info:"<strong>Bloom révisée classe les processus cognitifs visés.</strong> Objet : l'intention de la tâche. Usage : formuler des objectifs pédagogiques. Pour la grille : vérifier que la tâche et les critères évaluent bien le processus cognitif visé. Ne suffit pas à décrire la qualité de la réponse obtenue (voir la section 3.4)."},
+  {name:"Krathwohl", cls:"r-krath", base:90, top:330,
+   steps:["Réception","Réponse","Valorisation","Organisation","Caractérisation"],
+   info:"<strong>Krathwohl classe le degré d'intériorisation d'une valeur.</strong> Objet : le rapport de la personne à une valeur ou à une attitude. Usage : formuler des objectifs pédagogiques. Pour la grille : vérifier que l'évaluation est cohérente avec le niveau d'intériorisation visé, sans évaluer l'adhésion de l'étudiant. On utilise ensuite SOLO pour évaluer la structure du raisonnement sur les valeurs (section 4.3)."},
+  {name:"Simpson", cls:"r-simp", base:20, top:370,
+   steps:["Perception","Préparation","Réponse guidée","Mécanisme","Réponse complexe","Adaptation","Création"],
+   info:"<strong>Simpson classe la maîtrise et l'autonomie d'une habileté motrice.</strong> Objet : le geste, de sa perception à sa création. Usage : formuler des objectifs pédagogiques. Pour la grille : vérifier que la situation d'évaluation exige bien le degré d'autonomie visé. SOLO adapté peut compléter en décrivant la coordination des composantes du geste en situation (section 4.1)."}
+];
+const lw = document.getElementById("ladders");
+ladders.forEach((l,i)=>{
+  const d = document.createElement("div"); d.className="ladder"; d.tabIndex=0;
+  const n = l.steps.length, span = l.top - l.base, h = span/n - 6;
+  l.steps.forEach((s,k)=>{
+    const r = document.createElement("div"); r.className="rung "+l.cls;
+    r.style.bottom = (l.base + k*(span/n))+"px"; r.style.height = h+"px";
+    r.style.opacity = (0.55 + 0.45*(k+1)/n).toFixed(2);
+    r.textContent = s; d.appendChild(r);
+  });
+  const show = ()=>{
+    document.querySelectorAll(".ladder").forEach(x=>x.classList.remove("active"));
+    d.classList.add("active");
+    document.getElementById("ladderInfo").innerHTML = l.info;
+  };
+  d.addEventListener("click",show);
+  d.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();show();}});
+  lw.appendChild(d);
+});
+
+/* ---------- Onglets des disciplines (section 7) ---------- */
+const discs = document.querySelectorAll(".disc");
+const tabs = document.getElementById("tabs");
+discs.forEach((d,i)=>{
+  const b = document.createElement("button"); b.textContent = d.dataset.name;
+  b.addEventListener("click",()=>{
+    discs.forEach(x=>x.classList.remove("on"));
+    tabs.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+    d.classList.add("on"); b.classList.add("on");
+  });
+  tabs.appendChild(b);
+  if(i===0){d.classList.add("on"); b.classList.add("on");}
+});
+
+/* ---------- Classement de réponses (section 8.1) ---------- */
+const levels = ["Préstructurel","Unistructurel","Multistructurel","Relationnel","Abstrait étendu"];
+const quiz = [
+  {disc:"Biologie", q:"Expliquez l'apparition de la résistance aux antibiotiques.",
+   r:"«&nbsp;La résistance apparaît parce que certaines bactéries ont des mutations.&nbsp;»", a:1,
+   fb:"Un seul élément pertinent (la mutation) est mobilisé. La sélection et la reproduction sont absentes."},
+  {disc:"Histoire", q:"Expliquez les causes de la Révolution tranquille.",
+   r:"«&nbsp;Il y a eu l'urbanisation. Duplessis est mort en 1959. Lesage a été élu en 1960. Les gens étaient plus instruits.&nbsp;»", a:2,
+   fb:"Plusieurs causes pertinentes, mais juxtaposées. Aucune n'est reliée aux autres ni hiérarchisée."},
+  {disc:"Chimie", q:"Pourquoi l'eau bout-elle à plus haute température que H₂S ?",
+   r:"«&nbsp;L'oxygène est très électronégatif, donc les liaisons O-H sont très polaires et forment des ponts hydrogène. Ces interactions sont assez fortes pour compenser le fait que H₂S est plus lourd.&nbsp;»", a:3,
+   fb:"Les facteurs sont reliés en une chaîne explicative, et leur poids relatif est discuté."},
+  {disc:"Philosophie", q:"Peut-on désobéir à une loi injuste ?",
+   r:"«&nbsp;Oui, parce que chacun fait ce qu'il veut dans la vie.&nbsp;»", a:0,
+   fb:"La réponse ne mobilise aucun élément pertinent : elle ne traite ni de la loi, ni de la justice."},
+  {disc:"Aménagement et urbanisme", q:"Analysez le projet de réaménagement de l'artère.",
+   r:"«&nbsp;Ce projet illustre un principe plus général : réduire la place de l'automobile n'augmente l'achalandage commercial que si la densité résidentielle à proximité est suffisante. Ce principe permettrait d'évaluer d'autres artères de la ville.&nbsp;»", a:4,
+   fb:"La réponse dégage un principe général à partir des liens entre les dimensions, puis le transfère à d'autres cas."},
+  {disc:"Éducation physique (observation)", q:"Situation de deux attaquants contre un défenseur.",
+   r:"L'étudiant réussit ses passes et ses dribbles, mais passe même quand le défenseur reste sur son partenaire.", a:2,
+   fb:"Plusieurs gestes sont maîtrisés, mais ils ne sont pas ajustés à la lecture de la situation. La stratégie est absente."}
+];
+const qz = document.getElementById("quiz");
+quiz.forEach((it,i)=>{
+  const box = document.createElement("div"); box.className="q";
+  box.innerHTML = `<div class="small muted"><strong>${it.disc}</strong> | ${it.q}</div><div class="resp">${it.r}</div><div class="btns"></div><div class="fb"></div>`;
+  const btns = box.querySelector(".btns"), fb = box.querySelector(".fb");
+  levels.forEach((lv,k)=>{
+    const b = document.createElement("button"); b.textContent = lv; b.style.background = `var(--l${k})`;
+    b.addEventListener("click",()=>{
+      if(k===it.a){fb.className="fb ok"; fb.innerHTML=`<strong>Exact : ${levels[it.a]}.</strong> ${it.fb}`;}
+      else{fb.className="fb no"; fb.innerHTML=`<strong>Pas tout à fait. Le niveau est : ${levels[it.a]}.</strong> ${it.fb}`;}
+    });
+    btns.appendChild(b);
+  });
+  qz.appendChild(box);
+});
+
+/* ---------- Reformulation (section 8.2) ---------- */
+const reform = [
+  {disc:"Méthodologie (toutes disciplines)", c:"«&nbsp;Le travail cite au moins cinq sources.&nbsp;»",
+   p:"«&nbsp;Le travail met les sources en dialogue pour appuyer, nuancer ou contester l'argumentation.&nbsp;»"},
+  {disc:"Soins infirmiers", c:"«&nbsp;Le plan de soins énumère les signes et symptômes observés.&nbsp;»",
+   p:"«&nbsp;Le plan de soins relie les signes observés aux problèmes prioritaires et justifie les interventions choisies en fonction de ces liens.&nbsp;»"},
+  {disc:"Gestion", c:"«&nbsp;L'analyse présente les forces, faiblesses, opportunités et menaces de l'entreprise.&nbsp;»",
+   p:"«&nbsp;L'analyse explique comment les forces et faiblesses internes permettent ou non de saisir les opportunités et de contrer les menaces, et en tire une orientation stratégique.&nbsp;»"}
+];
+const rf = document.getElementById("reform");
+reform.forEach(it=>{
+  const box = document.createElement("div"); box.className="q";
+  box.innerHTML = `<div class="small muted"><strong>${it.disc}</strong></div><p><span class="tag t2">Multistructurel</span> ${it.c}</p><textarea placeholder="Votre reformulation..."></textarea><button class="reveal">Afficher une proposition</button><div class="answer"><span class="tag t3">Relationnel</span> ${it.p}</div>`;
+  const btn = box.querySelector(".reveal"), ans = box.querySelector(".answer");
+  btn.addEventListener("click",()=>{ans.classList.toggle("show"); btn.textContent = ans.classList.contains("show") ? "Masquer la proposition" : "Afficher une proposition";});
+  rf.appendChild(box);
+});
+
+/* ---------- Guide de vérification (section 8.3) ---------- */
+const sels = document.querySelectorAll("#check select"), diag = document.getElementById("diag");
+sels.forEach(s=>s.addEventListener("change",()=>{
+  const vals = [...sels].map(x=>x.value);
+  if(vals.some(v=>v==="")){diag.style.display="none";return;}
+  let signs = 0; sels.forEach(x=>{if(x.value===x.dataset.multi) signs++;});
+  diag.style.display="block";
+  if(signs===0){diag.style.background="var(--l3b)";diag.style.borderLeft="5px solid var(--l3)";
+    diag.innerHTML="<strong>Votre critère vise au moins le niveau relationnel.</strong> Vérifiez maintenant que les échelons inférieurs de votre échelle décrivent bien une réponse multistructurelle, et non une simple absence d'éléments.";}
+  else if(signs<=2){diag.style.background="#fff7e8";diag.style.borderLeft="5px solid var(--l3)";
+    diag.innerHTML=`<strong>Votre critère présente ${signs} indice${signs>1?"s":""} d'une logique multistructurelle.</strong> Il est en transition. Relisez les questions auxquelles votre réponse signale un indice, puis utilisez le gabarit ci-dessous.`;}
+  else{diag.style.background="var(--l2b)";diag.style.borderLeft="5px solid var(--l2)";
+    diag.innerHTML=`<strong>Votre critère présente ${signs} indices d'une logique multistructurelle.</strong> Il récompense probablement la quantité d'éléments. Utilisez le gabarit ci-dessous pour le reformuler autour des liens entre ces éléments.`;}
+}));
+</script>
+</body>
+</html>
